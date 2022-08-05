@@ -4,6 +4,7 @@ GET http://172.23.243.253:8080/coasters
 ###
 
 POST http://172.23.243.253:8080/coasters
+Content-Type: application/json
 
 {
   "name":"Taron",
