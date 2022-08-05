@@ -12,3 +12,7 @@ Content-Type: application/json
   "height": 30,
   "manufacturer": "Intamin"
 }
+
+###
+GET http://172.23.243.253:8080/admin
+Authorization: Basic admin:secret
