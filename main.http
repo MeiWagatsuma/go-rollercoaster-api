@@ -1,0 +1,13 @@
+GET http://172.23.243.253:8080/coasters 
+// wslのホスト名は172.23.243.253
+// https://docs.microsoft.com/ja-jp/windows/wsl/networking
+###
+
+POST http://172.23.243.253:8080/coasters
+
+{
+  "name":"Taron",
+  "inPark" :"Phantasialand",
+  "height": 30,
+  "manufacturer": "Intamin"
+}

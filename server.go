@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 )
 
 type Coaster struct {
@@ -70,6 +72,8 @@ func (h *coastersHandlers) post(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
+
+	coaster.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 
 	h.Lock()
 	h.store[coaster.ID] = coaster
