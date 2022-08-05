@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 type Coaster struct {
@@ -14,16 +16,36 @@ type Coaster struct {
 }
 
 type coastersHandlers struct {
+	sync.Mutex
 	store map[string]Coaster
+}
+
+func (h *coastersHandlers) coasters(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		h.get(w, r)
+		return
+	case "POST":
+		h.post(w, r)
+		return
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Write([]byte("method not allowed"))
+		return
+	}
 }
 
 func (h *coastersHandlers) get(w http.ResponseWriter, r *http.Request) {
 	coasters := make([]Coaster, len(h.store))
+
+	h.Lock()
 	i := 0
 	for _, coaster := range h.store {
 		coasters[i] = coaster
 		i++
 	}
+	h.Unlock()
+
 	jsonBytes, err := json.Marshal(coasters)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -32,6 +54,26 @@ func (h *coastersHandlers) get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonBytes)
+}
+
+func (h *coastersHandlers) post(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+	}
+
+	var coaster Coaster
+	err = json.Unmarshal(bodyBytes, &coaster)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+	}
+
+	h.Lock()
+	h.store[coaster.ID] = coaster
+	defer h.Unlock()
 }
 
 func newCoastersHandlers() *coastersHandlers {
@@ -49,7 +91,7 @@ func newCoastersHandlers() *coastersHandlers {
 
 func main() {
 	coastersHandlers := newCoastersHandlers()
-	http.HandleFunc("/coasters", coastersHandlers.get)
+	http.HandleFunc("/coasters", coastersHandlers.coasters)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		panic(err)
