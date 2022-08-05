@@ -16,3 +16,6 @@ Content-Type: application/json
 ###
 GET http://172.23.243.253:8080/admin
 Authorization: Basic admin:secret
+
+###
+GET http://172.23.243.253:8080/coasters/random
